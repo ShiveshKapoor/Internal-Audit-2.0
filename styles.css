@@ -3,30 +3,30 @@
    ============================================ */
 
 :root {
-  /* CIFOR-ICRAF Brand Colors — Forest Greens & Earth Tones */
-  --bg-primary: #0a1a14;
-  --bg-secondary: #0f231a;
-  --bg-card: #132e22;
-  --bg-card-hover: #1a3d2e;
-  --bg-input: #0c1f16;
-  --border: #1e4a38;
-  --border-light: #2a5f48;
+  /* Professional Light Theme — CIFOR-ICRAF Green Accents */
+  --bg-primary: #f5f7fa;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f0f4f2;
+  --bg-input: #f8faf9;
+  --border: #e2e8f0;
+  --border-light: #cbd5e1;
 
   /* Text */
-  --text-primary: #e4efe8;
-  --text-secondary: #8db5a0;
-  --text-muted: #5a8a70;
+  --text-primary: #1a202c;
+  --text-secondary: #4a5568;
+  --text-muted: #a0aec0;
 
   /* Accent — CIFOR-ICRAF Green */
   --accent: #2D6A4F;
   --accent-hover: #1B4332;
   --accent-light: #40916C;
-  --accent-glow: rgba(45, 106, 79, 0.2);
-  --accent-bright: #52B788;
+  --accent-glow: rgba(45, 106, 79, 0.08);
+  --accent-bright: #2D6A4F;
 
   /* Secondary accent — warm earth */
-  --warm: #D4A373;
-  --warm-bg: rgba(212, 163, 115, 0.1);
+  --warm: #C68B59;
+  --warm-bg: rgba(198, 139, 89, 0.08);
 
   /* Status */
   --high: #E76F51;
