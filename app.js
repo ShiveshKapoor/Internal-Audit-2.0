@@ -881,9 +881,43 @@ Rate issues: Critical/Major/Minor. End with: "This is an AI-generated draft."`, 
     if (old.length > 0) { for (const d of old) { d.id = await dbPut(d); } localStorage.removeItem('auditai_docs'); }
     state.docs = await dbGetAll();
 
-    loadDemoData();
-    renderDocs(); renderGrants(); renderEntities(); renderRecs(); renderAILog(); restoreChat();
-    updateApiBanner(); updateDocBadge(); checkOverdueRecs(); showWelcome();
+   // ---- CHANGE 2: Demo Data (Fictionalized) ----
+  function loadDemoData() {
+    if (state.grants.length === 0 && state.entities.length === 0 && state.recs.length === 0 && !localStorage.getItem('auditai_demo_cleared')) {
+      
+      // Fictional Grant
+      state.grants = [{
+        id: 'APEX-9901', name: 'Zelorian Ecosystem Harmonization', donor: 'Apex Foundation', budget: 12500000, expenditure: 11000000,
+        burnRate: 88, subgrants: 12, startDate: '2023-01-01', endDate: '2026-12-31',
+        countries: 'Zeloria', singleVendor: true, lateSpend: true, docGaps: false, extAudit: true,
+        notes: 'Fictional demo grant data', riskScore: 0,
+      }];
+      state.grants[0].riskScore = calculateGrantRisk(state.grants[0]);
+
+      // Fictional Entity
+      state.entities = [{
+        name: 'Zeloria Country Office', region: 'HQ', type: 'Country Office', staff: 42,
+        lastAudit: '2024-05-15', openRecs: 4, turnover: 18, budgetVol: 6, security: 2,
+        complaints: 1, donorChange: 'stable', regRisk: 'medium', grantBurn: 88,
+        notes: 'Totally fictional entity for demo purposes', riskScore: 0, trend: 'stable', prevScore: 0,
+      }];
+      state.entities[0].riskScore = calculateEntityRisk(state.entities[0]);
+      state.entities[0].prevScore = state.entities[0].riskScore;
+
+      // Fictional Recommendation
+      state.recs = [{
+        report: 'Zeloria CO Audit 2024', finding: 'Fictional Compliance Gap',
+        recommendation: 'Implement standard flux capacitor maintenance logs.',
+        owner: 'Director of Zelorian Affairs', due: '2026-10-01', status: 'open',
+      }];
+
+      save('grants', state.grants);
+      save('entities', state.entities);
+      save('recommendations', state.recs);
+      // Ensures this fake data only loads once, unless the user clears it manually
+      localStorage.setItem('auditai_demo_cleared', 'true'); 
+    }
+  }
   }
 
   init();
