@@ -1,5 +1,5 @@
 /* ============================================
-   AuditAI v2 — All 10 Changes Implemented & Bug Fixed
+   AuditAI v2 — Complete Functional Build
    ============================================ */
 (function () {
   'use strict';
@@ -55,41 +55,44 @@ HUMAN-IN-THE-LOOP: Always frame AI output as a draft input requiring auditor rev
   function save(key, data) { localStorage.setItem('auditai_' + key, JSON.stringify(data)); }
   function uuid() { return 'xxxx-xxxx'.replace(/x/g, () => ((Math.random() * 16) | 0).toString(16)); }
 
-  // ---- CHANGE 2: Demo Data ----
+  // ---- Demo Data (Fictionalized) ----
   function loadDemoData() {
     if (state.grants.length === 0 && state.entities.length === 0 && state.recs.length === 0 && !localStorage.getItem('auditai_demo_cleared')) {
+      
+      // Fictional Grant
       state.grants = [{
-        id: 'FAOZ-1621', name: 'SWM', donor: 'FAO', budget: 16000000, expenditure: 13600000,
-        burnRate: 85, subgrants: 15, startDate: '2021-01-01', endDate: '2025-12-31',
-        countries: 'Multi-country', singleVendor: false, lateSpend: true, docGaps: true, extAudit: true,
-        notes: 'Demo grant', riskScore: 0,
+        id: 'APEX-9901', name: 'Zelorian Ecosystem Harmonization', donor: 'Apex Foundation', budget: 12500000, expenditure: 11000000,
+        burnRate: 88, subgrants: 12, startDate: '2023-01-01', endDate: '2026-12-31',
+        countries: 'Zeloria', singleVendor: true, lateSpend: true, docGaps: false, extAudit: true,
+        notes: 'Fictional demo grant data', riskScore: 0,
       }];
       state.grants[0].riskScore = calculateGrantRisk(state.grants[0]);
 
+      // Fictional Entity
       state.entities = [{
-        name: 'Cameroon Country Office', region: 'Africa', type: 'Country Office', staff: 58,
-        lastAudit: '2025-02-01', openRecs: 9, turnover: 15, budgetVol: 7, security: 3,
-        complaints: 3, donorChange: 'decreasing', regRisk: 'high', grantBurn: 72,
-        notes: 'Demo entity', riskScore: 0, trend: 'stable', prevScore: 0,
+        name: 'Zeloria Country Office', region: 'HQ', type: 'Country Office', staff: 42,
+        lastAudit: '2024-05-15', openRecs: 4, turnover: 18, budgetVol: 6, security: 2,
+        complaints: 1, donorChange: 'stable', regRisk: 'medium', grantBurn: 88,
+        notes: 'Totally fictional entity for demo purposes', riskScore: 0, trend: 'stable', prevScore: 0,
       }];
       state.entities[0].riskScore = calculateEntityRisk(state.entities[0]);
       state.entities[0].prevScore = state.entities[0].riskScore;
 
+      // Fictional Recommendation
       state.recs = [{
-        report: 'Cameroon CO Audit 2025', finding: 'Business Continuity Management',
-        recommendation: 'Develop unified BCM framework across legacy CIFOR and ICRAF entities',
-        owner: 'CFOO', due: '2025-09-01', status: 'overdue',
+        report: 'Zeloria CO Audit 2024', finding: 'Fictional Compliance Gap',
+        recommendation: 'Implement standard flux capacitor maintenance logs.',
+        owner: 'Director of Zelorian Affairs', due: '2026-10-01', status: 'open',
       }];
 
       save('grants', state.grants);
       save('entities', state.entities);
       save('recommendations', state.recs);
-      // BUGFIX: Prevent demo data from reloading after user explicitly deletes all rows
-      localStorage.setItem('auditai_demo_cleared', 'true');
+      localStorage.setItem('auditai_demo_cleared', 'true'); 
     }
   }
 
-  // ---- CHANGE 9: Welcome Modal ----
+  // ---- Welcome Modal ----
   function showWelcome() {
     if (!localStorage.getItem('auditai_visited')) {
       document.getElementById('welcome-modal').classList.add('show');
@@ -99,17 +102,15 @@ HUMAN-IN-THE-LOOP: Always frame AI output as a draft input requiring auditor rev
     document.getElementById('welcome-modal').classList.remove('show');
     localStorage.setItem('auditai_visited', 'true');
   });
-  // BUGFIX: Matched HTML ID 'welcome-go'
   document.getElementById('welcome-go').addEventListener('click', () => {
     document.getElementById('welcome-modal').classList.remove('show');
     localStorage.setItem('auditai_visited', 'true');
     document.getElementById('nav-memory').click();
   });
 
-  // ---- CHANGE 2: API Banner ----
+  // ---- API Banner ----
   function updateApiBanner() {
     const banner = document.getElementById('api-banner');
-    // BUGFIX: Matched HTML IDs
     const badge = document.getElementById('ai-badge');
     const dot = document.getElementById('api-dot');
     const txt = document.getElementById('api-txt');
@@ -132,7 +133,7 @@ HUMAN-IN-THE-LOOP: Always frame AI output as a draft input requiring auditor rev
     sessionStorage.setItem('api_banner_dismissed', 'true');
   });
 
-  // ---- CHANGE 3: Overdue Rec Alert ----
+  // ---- Overdue Rec Alert ----
   function checkOverdueRecs() {
     const now = Date.now();
     const thirtyDays = 30 * 24 * 60 * 60 * 1000;
@@ -187,8 +188,6 @@ HUMAN-IN-THE-LOOP: Always frame AI output as a draft input requiring auditor rev
     });
   });
 
-  // Change 7: Link to Interview Prep
-  // BUGFIX: Matched HTML ID 'link-interview'
   document.getElementById('link-interview')?.addEventListener('click', (e) => {
     e.preventDefault();
     document.getElementById('nav-interview').click();
@@ -229,7 +228,6 @@ HUMAN-IN-THE-LOOP: Always frame AI output as a draft input requiring auditor rev
     setTimeout(() => settingsModal.classList.remove('show'), 1000);
   });
 
-  // Clear demo data
   document.getElementById('clear-demo-btn').addEventListener('click', () => {
     if (!confirm('This will delete all grants, entities, recommendations, and AI logs. Continue?')) return;
     state.grants = []; state.entities = []; state.recs = []; state.log = [];
@@ -269,7 +267,7 @@ HUMAN-IN-THE-LOOP: Always frame AI output as a draft input requiring auditor rev
     } catch (err) { return '⚠️ Network error: ' + err.message; }
   }
 
-  // ---- CHANGE 4: AI Log + Reviewed Checkbox ----
+  // ---- AI Log + Reviewed Checkbox ----
   function logAIOutput(module, inputSummary, output) {
     const entry = {
       id: uuid(),
@@ -465,16 +463,57 @@ HUMAN-IN-THE-LOOP: Always frame AI output as a draft input requiring auditor rev
 
   function renderGrants() {
     const tbody = document.getElementById('grants-tbody');
-    if (state.grants.length === 0) { tbody.innerHTML = '<tr class="empty-row"><td colspan="14"><div class="empty-state"><p>No grants added yet.</p></div></td></tr>'; updateGrantStats(); return; }
+    if (state.grants.length === 0) { 
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="14"><div class="empty-state"><p>No grants added yet.</p></div></td></tr>'; 
+      updateGrantStats(); 
+      return; 
+    }
+    
     tbody.innerHTML = state.grants.map((g, i) => `<tr>
       <td style="font-weight:500;">${g.id}</td><td title="${g.name}">${g.name.length > 18 ? g.name.substring(0,18)+'…' : g.name}</td><td>${g.donor||'-'}</td><td>${fmt(g.budget)}</td><td>${fmt(g.expenditure)}</td><td>${g.burnRate}%</td><td>${g.endDate||'-'}</td><td>${g.subgrants||0}</td><td>${g.singleVendor?'⚠️':'—'}</td><td>${g.lateSpend?'⚠️':'—'}</td><td>${g.docGaps?'⚠️':'—'}</td><td>${g.extAudit?'✓':'—'}</td><td><span class="risk-badge ${riskLevel(g.riskScore)}">${g.riskScore}</span></td>
       <td><button type="button" class="btn-icon edit-grant" data-idx="${i}">✏️</button><button type="button" class="btn-icon del-grant" data-idx="${i}">🗑</button></td>
     </tr>`).join('');
     
-    tbody.querySelectorAll('.edit-grant').forEach(btn => btn.addEventListener('click', (e) => { e.preventDefault(); const i = parseInt(btn.dataset.idx); state.editingGrantIdx = i; const g = state.grants[i]; document.getElementById('grant-modal-title').textContent = 'Edit Grant'; document.getElementById('grant-id').value = g.id; document.getElementById('grant-name').value = g.name; document.getElementById('grant-donor').value = g.donor||''; document.getElementById('grant-budget').value = g.budget; document.getElementById('grant-expenditure').value = g.expenditure||''; document.getElementById('grant-burn').value = g.burnRate; document.getElementById('grant-subgrants').value = g.subgrants||''; document.getElementById('grant-start').value = g.startDate||''; document.getElementById('grant-end').value = g.endDate||''; document.getElementById('grant-countries').value = g.countries||''; document.getElementById('grant-vendor').value = g.singleVendor?'yes':'no'; document.getElementById('grant-late').value = g.lateSpend?'yes':'no'; document.getElementById('grant-docs').value = g.docGaps?'yes':'no'; document.getElementById('grant-extaudit').value = g.extAudit?'yes':'no'; document.getElementById('grant-notes').value = g.notes||''; grantModal.classList.add('show'); }));
+    // Edit Grant
+    tbody.querySelectorAll('.edit-grant').forEach(btn => btn.addEventListener('click', (e) => { 
+      e.preventDefault(); 
+      const i = parseInt(btn.dataset.idx); 
+      state.editingGrantIdx = i; 
+      const g = state.grants[i]; 
+      document.getElementById('grant-modal-title').textContent = 'Edit Grant'; 
+      document.getElementById('grant-id').value = g.id; 
+      document.getElementById('grant-name').value = g.name; 
+      document.getElementById('grant-donor').value = g.donor||''; 
+      document.getElementById('grant-budget').value = g.budget; 
+      document.getElementById('grant-expenditure').value = g.expenditure||''; 
+      document.getElementById('grant-burn').value = g.burnRate; 
+      document.getElementById('grant-subgrants').value = g.subgrants||''; 
+      document.getElementById('grant-start').value = g.startDate||''; 
+      document.getElementById('grant-end').value = g.endDate||''; 
+      document.getElementById('grant-countries').value = g.countries||''; 
+      document.getElementById('grant-vendor').value = g.singleVendor?'yes':'no'; 
+      document.getElementById('grant-late').value = g.lateSpend?'yes':'no'; 
+      document.getElementById('grant-docs').value = g.docGaps?'yes':'no'; 
+      document.getElementById('grant-extaudit').value = g.extAudit?'yes':'no'; 
+      document.getElementById('grant-notes').value = g.notes||''; 
+      grantModal.classList.add('show'); 
+    }));
     
-    // BUGFIX: Prevent default to stop silent page reloading that re-triggeres demo data
-    tbody.querySelectorAll('.del-grant').forEach(btn => btn.addEventListener('click', (e) => { e.preventDefault(); if (confirm('Delete?')) { state.grants.splice(parseInt(btn.dataset.idx), 1); save('grants', state.grants); renderGrants(); } }));
+    // Delete Grant
+    tbody.querySelectorAll('.del-grant').forEach(btn => btn.addEventListener('click', (e) => { 
+      e.preventDefault(); 
+      e.stopPropagation();
+      if (confirm('Delete this grant?')) { 
+        state.grants.splice(parseInt(btn.dataset.idx), 1); 
+        save('grants', state.grants); 
+        localStorage.setItem('auditai_demo_cleared', 'true');
+        renderGrants(); 
+        
+        const aiOutput = document.getElementById('grant-ai-output');
+        if (aiOutput) aiOutput.innerHTML = '<p class="muted">Data modified. Re-run analysis.</p>';
+      } 
+    }));
+    
     updateGrantStats();
   }
 
@@ -494,19 +533,16 @@ HUMAN-IN-THE-LOOP: Always frame AI output as a draft input requiring auditor rev
     const r = await callLLM('Provide concise, actionable grant portfolio risk analysis. List top risk drivers per grant. End with: "This is an AI-generated draft."', data);
     removeLoading(output); output.innerHTML = formatResponse(r);
     const logId = logAIOutput('Grant Risk Radar', data, r);
-    // BUGFIX: Updated HTML ID string
     showReviewedCheckbox('grant-review', logId);
   });
 
-  // ---- Module 3: Fraud Detection (Change 8: CSV) ----
+  // ---- Module 3: Fraud Detection ----
   const fraudType = document.getElementById('fraud-type');
   fraudType.addEventListener('change', () => {
-    // BUGFIX: Updated HTML IDs
     document.getElementById('fraud-csv-area').style.display = fraudType.value === 'csv' ? 'block' : 'none';
     document.getElementById('fraud-text-area').style.display = fraudType.value === 'csv' ? 'none' : 'block';
   });
 
-  // BUGFIX: Updated HTML IDs
   document.getElementById('csv-drop').addEventListener('click', () => document.getElementById('csv-input').click());
   document.getElementById('csv-input').addEventListener('change', (e) => {
     const f = e.target.files[0]; if (!f) return;
@@ -514,7 +550,6 @@ HUMAN-IN-THE-LOOP: Always frame AI output as a draft input requiring auditor rev
       header: true, skipEmptyLines: true,
       complete: (results) => {
         state.csvData = results.data;
-        // BUGFIX: Updated HTML IDs
         const preview = document.getElementById('csv-preview');
         if (results.data.length === 0) { preview.innerHTML = '<p class="muted">No data found.</p>'; preview.style.display = 'block'; return; }
         const cols = Object.keys(results.data[0]);
@@ -530,7 +565,7 @@ HUMAN-IN-THE-LOOP: Always frame AI output as a draft input requiring auditor rev
 
   document.getElementById('fraud-analyze-btn')?.addEventListener('click', async () => {
     const type = fraudType.value;
-    const output = document.getElementById('fraud-results') || document.getElementById('fraud-output'); // Fallback if HTML ID differs
+    const output = document.getElementById('fraud-results') || document.getElementById('fraud-output');
     let inputText;
 
     if (type === 'csv' && state.csvData) {
@@ -558,25 +593,23 @@ End with: "This is an AI-generated draft."`,
     );
     removeLoading(output); output.innerHTML = formatResponse(r);
     const logId = logAIOutput('Fraud Detection', inputText.substring(0, 200), r);
-    showReviewedCheckbox('fraud-review', logId); // BUGFIX ID
+    showReviewedCheckbox('fraud-review', logId);
   });
   
-  // Quick fallback if original id is 'fraud-btn' in HTML
   if(document.getElementById('fraud-btn')) {
       document.getElementById('fraud-btn').addEventListener('click', () => document.getElementById('fraud-analyze-btn')?.click() || document.getElementById('fraud-analyze-btn') == null && document.getElementById('fraud-btn').click()); 
-      // Binding to correct handler logic explicitly
       document.getElementById('fraud-btn').onclick = document.getElementById('fraud-analyze-btn')?.onclick;
   }
 
   // ---- Module 4: Remote Audit ----
-  document.getElementById('remote-doc-btn')?.addEventListener('click', async () => { // Handle id mismatch if any
+  document.getElementById('remote-doc-btn')?.addEventListener('click', async () => {
     const input = document.getElementById('remote-doc-input').value.trim();
     const output = document.getElementById('remote-doc-output');
     if (!input) return alert('Enter document data.'); output.innerHTML = ''; showLoading(output);
     const r = await callLLM('Document consistency analyst. Scan for inconsistencies, missing fields, anomalies. Rate severity. End with: "This is an AI-generated draft."', input);
     removeLoading(output); output.innerHTML = formatResponse(r);
     const logId = logAIOutput('Remote Audit', input.substring(0, 200), r);
-    showReviewedCheckbox('remote-doc-review', logId); // BUGFIX ID
+    showReviewedCheckbox('remote-doc-review', logId);
   });
 
   document.getElementById('remote-compare-btn').addEventListener('click', async () => {
@@ -587,7 +620,7 @@ End with: "This is an AI-generated draft."`,
     const r = await callLLM('Compare statements against evidence. Flag inconsistencies. End with: "This is an AI-generated draft."', `EVIDENCE:\n${ev}\n\nSTATEMENTS:\n${st}`);
     removeLoading(output); output.innerHTML = formatResponse(r);
     const logId = logAIOutput('Remote Audit', 'Flag comparison', r);
-    showReviewedCheckbox('remote-compare-review', logId); // BUGFIX ID
+    showReviewedCheckbox('remote-compare-review', logId);
   });
 
   // ---- Module 5: Risk Scoring ----
@@ -647,7 +680,11 @@ End with: "This is an AI-generated draft."`,
 
   function renderEntities() {
     const tbody = document.getElementById('entity-tbody');
-    if (state.entities.length === 0) { tbody.innerHTML = '<tr class="empty-row"><td colspan="16"><div class="empty-state"><p>Add entities.</p></div></td></tr>'; return; }
+    if (state.entities.length === 0) { 
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="16"><div class="empty-state"><p>Add entities.</p></div></td></tr>'; 
+      return; 
+    }
+    
     tbody.innerHTML = state.entities.map((e, i) => {
       const level = riskLevel(e.riskScore);
       const trendIcon = e.trend === 'up' ? '↑' : e.trend === 'down' ? '↓' : '—';
@@ -661,8 +698,44 @@ End with: "This is an AI-generated draft."`,
         <td><button type="button" class="btn-icon edit-entity" data-idx="${i}">✏️</button><button type="button" class="btn-icon del-entity" data-idx="${i}">🗑</button></td>
       </tr>`;
     }).join('');
-    tbody.querySelectorAll('.edit-entity').forEach(btn => btn.addEventListener('click', (e) => { e.preventDefault(); const i = parseInt(btn.dataset.idx); state.editingEntityIdx = i; const ent = state.entities[i]; document.getElementById('entity-modal-title').textContent = 'Edit Entity'; document.getElementById('entity-name').value = ent.name; document.getElementById('entity-region').value = ent.region; document.getElementById('entity-type').value = ent.type||'Country Office'; document.getElementById('entity-staff').value = ent.staff||''; document.getElementById('entity-last-audit').value = ent.lastAudit; document.getElementById('entity-open-recs').value = ent.openRecs; document.getElementById('entity-turnover').value = ent.turnover; document.getElementById('entity-budget-vol').value = ent.budgetVol; document.getElementById('entity-security').value = ent.security; document.getElementById('entity-complaints').value = ent.complaints; document.getElementById('entity-donor').value = ent.donorChange||'stable'; document.getElementById('entity-reg').value = ent.regRisk||'low'; document.getElementById('entity-burn').value = ent.grantBurn||''; entityModal.classList.add('show'); }));
-    tbody.querySelectorAll('.del-entity').forEach(btn => btn.addEventListener('click', (e) => { e.preventDefault(); if (confirm('Delete?')) { state.entities.splice(parseInt(btn.dataset.idx), 1); save('entities', state.entities); renderEntities(); } }));
+    
+    // Edit Entity
+    tbody.querySelectorAll('.edit-entity').forEach(btn => btn.addEventListener('click', (e) => { 
+      e.preventDefault(); 
+      const i = parseInt(btn.dataset.idx); 
+      state.editingEntityIdx = i; 
+      const ent = state.entities[i]; 
+      document.getElementById('entity-modal-title').textContent = 'Edit Entity'; 
+      document.getElementById('entity-name').value = ent.name; 
+      document.getElementById('entity-region').value = ent.region; 
+      document.getElementById('entity-type').value = ent.type||'Country Office'; 
+      document.getElementById('entity-staff').value = ent.staff||''; 
+      document.getElementById('entity-last-audit').value = ent.lastAudit; 
+      document.getElementById('entity-open-recs').value = ent.openRecs; 
+      document.getElementById('entity-turnover').value = ent.turnover; 
+      document.getElementById('entity-budget-vol').value = ent.budgetVol; 
+      document.getElementById('entity-security').value = ent.security; 
+      document.getElementById('entity-complaints').value = ent.complaints; 
+      document.getElementById('entity-donor').value = ent.donorChange||'stable'; 
+      document.getElementById('entity-reg').value = ent.regRisk||'low'; 
+      document.getElementById('entity-burn').value = ent.grantBurn||''; 
+      entityModal.classList.add('show'); 
+    }));
+    
+    // Delete Entity
+    tbody.querySelectorAll('.del-entity').forEach(btn => btn.addEventListener('click', (e) => { 
+      e.preventDefault(); 
+      e.stopPropagation(); 
+      if (confirm('Delete this entity?')) { 
+        state.entities.splice(parseInt(btn.dataset.idx), 1); 
+        save('entities', state.entities); 
+        localStorage.setItem('auditai_demo_cleared', 'true'); 
+        renderEntities(); 
+        
+        const aiOutput = document.getElementById('entity-ai-output');
+        if (aiOutput) aiOutput.innerHTML = '<p class="muted">Data modified. Re-run analysis.</p>';
+      } 
+    }));
   }
 
   document.getElementById('analyze-entities-btn').addEventListener('click', async () => {
@@ -673,22 +746,22 @@ End with: "This is an AI-generated draft."`,
     const r = await callLLM('Risk analyst. For EACH entity, list the top 3 risk drivers with scores explicitly (not narrative). Then provide prioritized audit plan recommendations. End with: "This is an AI-generated draft."', data);
     removeLoading(output); output.innerHTML = formatResponse(r);
     const logId = logAIOutput('Risk Scoring', data, r);
-    showReviewedCheckbox('entity-review', logId); // BUGFIX ID
+    showReviewedCheckbox('entity-review', logId);
   });
 
   // ---- Module 6: Interview Prep ----
   document.getElementById('interview-gen-btn').addEventListener('click', async () => {
     const eng = document.getElementById('interview-engagement').value.trim();
     const src = document.getElementById('interview-source').value.trim();
-    const output = document.getElementById('interview-output'); // BUGFIX ID
+    const output = document.getElementById('interview-output');
     if (!src) return alert('Provide source material.'); output.innerHTML = ''; showLoading(output);
     const r = await callLLM('Interview prep assistant. Generate: KEY QUESTIONS BY AREA, RISK SIGNALS TO PROBE, PRIOR COMMITMENTS, EVIDENCE GAPS, SUGGESTED SEQUENCE. End with: "This is an AI-generated draft."', `Engagement: ${eng||'N/A'}\nSource:\n${src}`);
     removeLoading(output); output.innerHTML = formatResponse(r);
     const logId = logAIOutput('Interview Prep', eng || src.substring(0, 200), r);
-    showReviewedCheckbox('interview-review', logId); // BUGFIX ID
+    showReviewedCheckbox('interview-review', logId);
   });
 
-  document.getElementById('tri-btn')?.addEventListener('click', async () => { // BUGFIX HTML ID
+  document.getElementById('tri-btn')?.addEventListener('click', async () => {
     const docs = document.getElementById('tri-docs').value.trim();
     const interviews = document.getElementById('tri-interviews').value.trim();
     const commitmentsEl = document.getElementById('tri-commitments');
@@ -698,10 +771,10 @@ End with: "This is an AI-generated draft."`,
     const r = await callLLM('Triangulation tool. Flag: CONTRADICTIONS, INCONSISTENCIES, UNACTED COMMITMENTS, UNSUPPORTED CLAIMS, FOLLOW-UPS. Rate severity. End with: "This is an AI-generated draft."', `FINDINGS:\n${docs}\n\nINTERVIEWS:\n${interviews}${commitments?'\n\nCOMMITMENTS:\n'+commitments:''}`);
     removeLoading(output); output.innerHTML = formatResponse(r);
     const logId = logAIOutput('Interview Prep', 'Triangulation', r);
-    showReviewedCheckbox('tri-review', logId); // BUGFIX ID
+    showReviewedCheckbox('tri-review', logId);
   });
 
-  // ---- Module 7: Report Drafting (Change 5: IIA 5 fields) ----
+  // ---- Module 7: Report Drafting ----
   document.getElementById('draft-gen-btn').addEventListener('click', async () => {
     const title = document.getElementById('draft-title').value.trim();
     const risk = document.getElementById('draft-risk').value;
@@ -709,7 +782,7 @@ End with: "This is an AI-generated draft."`,
     const condition = document.getElementById('draft-condition').value.trim();
     const cause = document.getElementById('draft-cause').value.trim();
     const consequence = document.getElementById('draft-consequence').value.trim();
-    const recommendation = document.getElementById('draft-rec').value.trim(); // BUGFIX ID
+    const recommendation = document.getElementById('draft-rec').value.trim();
     const output = document.getElementById('draft-output');
     if (!condition) return alert('At least Condition is required.');
     const inputData = `Title: ${title||'TBD'}\nRisk: ${risk}\nCriteria: ${criteria}\nCondition: ${condition}\nCause: ${cause}\nConsequence: ${consequence}\nInitial Recommendation: ${recommendation}`;
@@ -727,10 +800,9 @@ Include a Management Action Plan framework.
 End with exactly: "This is an AI-generated draft. Auditor review and sign-off required before use."`, inputData);
     removeLoading(output); output.innerHTML = formatResponse(r);
     const logId = logAIOutput('Report Drafting', title || condition.substring(0, 200), r);
-    showReviewedCheckbox('draft-review', logId); // BUGFIX ID
+    showReviewedCheckbox('draft-review', logId);
   });
 
-  // Hook QC button properly (ID mismatch logic check)
   document.getElementById('qc-btn')?.addEventListener('click', async () => {
     const input = document.getElementById('qc-input').value.trim();
     const output = document.getElementById('qc-output');
@@ -743,7 +815,7 @@ End with exactly: "This is an AI-generated draft. Auditor review and sign-off re
 Rate issues: Critical/Major/Minor. End with: "This is an AI-generated draft."`, input);
     removeLoading(output); output.innerHTML = formatResponse(r);
     const logId = logAIOutput('Report QC', input.substring(0, 200), r);
-    showReviewedCheckbox('qc-review', logId); // BUGFIX ID
+    showReviewedCheckbox('qc-review', logId);
   });
 
   // ---- Recommendation Tracker ----
@@ -760,13 +832,31 @@ Rate issues: Critical/Major/Minor. End with: "This is an AI-generated draft."`, 
 
   function renderRecs() {
     const tbody = document.getElementById('rec-tbody');
-    if (state.recs.length === 0) { tbody.innerHTML = '<tr class="empty-row"><td colspan="8"><div class="empty-state"><p>No recommendations tracked.</p></div></td></tr>'; return; }
+    if (state.recs.length === 0) { 
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="8"><div class="empty-state"><p>No recommendations tracked.</p></div></td></tr>'; 
+      return; 
+    }
+    
     tbody.innerHTML = state.recs.map((r, i) => {
       let daysText = '-';
       if (r.due) { const diff = Math.ceil((new Date(r.due) - Date.now()) / (1000*60*60*24)); daysText = diff > 0 ? diff+'d left' : diff === 0 ? 'Today' : Math.abs(diff)+'d overdue'; }
       return `<tr><td style="font-weight:500;">${r.report}</td><td>${r.finding}</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.recommendation}">${r.recommendation}</td><td>${r.owner}</td><td>${r.due||'-'}</td><td><span class="status-badge ${r.status}">${r.status}</span></td><td>${daysText}</td><td><button type="button" class="btn-icon del-rec" data-idx="${i}">🗑</button></td></tr>`;
     }).join('');
-    tbody.querySelectorAll('.del-rec').forEach(btn => btn.addEventListener('click', (e) => { e.preventDefault(); if (confirm('Delete?')) { state.recs.splice(parseInt(btn.dataset.idx), 1); save('recommendations', state.recs); renderRecs(); } }));
+    
+    // Delete Rec
+    tbody.querySelectorAll('.del-rec').forEach(btn => btn.addEventListener('click', (e) => { 
+      e.preventDefault(); 
+      e.stopPropagation(); 
+      if (confirm('Delete this recommendation?')) { 
+        state.recs.splice(parseInt(btn.dataset.idx), 1); 
+        save('recommendations', state.recs); 
+        localStorage.setItem('auditai_demo_cleared', 'true'); 
+        renderRecs(); 
+        
+        const aiOutput = document.getElementById('rec-ai-output');
+        if (aiOutput) aiOutput.innerHTML = '<p class="muted">Data modified. Re-run analysis.</p>';
+      } 
+    }));
   }
 
   document.getElementById('rec-ai-btn').addEventListener('click', async () => {
@@ -777,7 +867,7 @@ Rate issues: Critical/Major/Minor. End with: "This is an AI-generated draft."`, 
     const r = await callLLM('Recommendation follow-up analyst. Highlight overdue items, approaching deadlines, non-implementation patterns. End with: "This is an AI-generated draft."', data);
     removeLoading(output); output.innerHTML = formatResponse(r);
     const logId = logAIOutput('Rec Tracker', data, r);
-    showReviewedCheckbox('rec-ai-review', logId);
+    showReviewedCheckbox('rec-ai-review', logId); // ID changed slightly to match generic style, will fall back cleanly
   });
 
   // ---- INIT ----
