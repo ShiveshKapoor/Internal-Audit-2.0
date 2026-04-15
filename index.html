@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AuditAI — CIFOR-ICRAF Internal Audit Intelligence Platform</title>
+  <meta name="description" content="AI-powered platform for CIFOR-ICRAF internal audit — institutional memory, risk radar, fraud detection, remote audit, and report drafting." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+
+  <!-- API Key Banner (Change 2) -->
+  <div class="api-banner" id="api-banner" style="display:none;">
+    <span>🔑 AI features need an API key to run. Your key is stored only in your browser — it is never sent to any server other than the AI provider you choose.</span>
+    <button class="btn btn-sm btn-primary" onclick="document.getElementById('settings-btn').click()">API Settings</button>
+    <button class="banner-dismiss" id="api-banner-dismiss">&times;</button>
+  </div>
+
+  <!-- Overdue Recommendation Alert (Change 3) -->
+  <div class="rec-alert-banner" id="rec-alert-banner" style="display:none;">
+    <span id="rec-alert-text"></span>
+    <button class="banner-dismiss" id="rec-alert-dismiss">&times;</button>
+  </div>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <rect x="2" y="2" width="24" height="24" rx="6" stroke="currentColor" stroke-width="2"/>
+            <path d="M9 14h10M14 9v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="14" cy="14" r="4" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+          </svg>
+        </div>
+        <span class="logo-text">AuditAI</span>
+        <span class="ai-connected-badge" id="ai-connected-badge" style="display:none;">AI Connected</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-module="memory" id="nav-memory">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        <span>Institutional Memory</span>
+      </button>
+      <button class="nav-item" data-module="risk-radar" id="nav-risk-radar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+        <span>Grant Risk Radar</span>
+      </button>
+      <button class="nav-item" data-module="fraud" id="nav-fraud">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>Fraud Detection</span>
+      </button>
+      <button class="nav-item" data-module="remote" id="nav-remote">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span>Remote Audit</span>
+      </button>
+      <button class="nav-item" data-module="predictive" id="nav-predictive">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Risk Scoring</span>
+      </button>
+      <button class="nav-item" data-module="interview" id="nav-interview">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Interview Prep</span>
+      </button>
+      <button class="nav-item" data-module="report" id="nav-report">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span>Report Drafting</span>
+      </button>
+      <!-- Change 4: AI Log nav -->
+      <button class="nav-item" data-module="ailog" id="nav-ailog">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+        <span>AI Log</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="api-status" id="api-status">
+        <span class="api-status-dot" id="api-status-dot"></span>
+        <span class="api-status-text" id="api-status-text">Not connected</span>
+      </div>
+      <button class="nav-item settings-btn" id="settings-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>API Settings</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="main-content" id="main-content">
+
+    <!-- ===================== MODULE 1: Institutional Memory ===================== -->
+    <section class="module active" id="module-memory">
+      <div class="module-header">
+        <div>
+          <h1>Institutional Memory System</h1>
+          <p class="module-subtitle">Query your audit knowledge base conversationally. Upload documents and ask questions across your entire audit history.</p>
+        </div>
+      </div>
+      <div class="module-body memory-layout">
+        <div class="panel doc-panel">
+          <div class="panel-header">
+            <h3>Document Corpus</h3>
+            <button class="btn btn-sm" id="memory-upload-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Upload
+            </button>
+            <input type="file" id="memory-file-input" multiple accept=".pdf,.docx,.txt,.doc" hidden />
+          </div>
+          <div class="doc-list" id="memory-doc-list">
+            <div class="empty-state">
+              <p>Upload audit reports, planning memos, working papers, and management responses</p>
+            </div>
+          </div>
+          <div id="doc-summary-container"></div>
+        </div>
+        <div class="panel chat-panel">
+          <div class="chat-messages" id="memory-chat">
+            <div class="chat-welcome">
+              <h3>Ask your audit knowledge base</h3>
+              <p>Upload documents and query institutional history. Example questions:</p>
+              <div class="suggestion-chips">
+                <button class="chip" data-q="What has this office been flagged for in prior audits, and what was the agreed management action?">Prior audit flags & actions</button>
+                <button class="chip" data-q="Which country offices have open BCM recommendations from before 2024?">Open BCM recommendations</button>
+                <button class="chip" data-q="What patterns of travel non-compliance have been identified across Africa-region offices?">Travel non-compliance patterns</button>
+                <button class="chip" data-q="What was the root cause attributed to the partner due diligence finding?">Root cause analysis</button>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <textarea id="memory-input" placeholder="Ask a question about your audit documents..." rows="1"></textarea>
+            <button class="btn btn-send" id="memory-send">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== MODULE 2: Grant Risk Radar ===================== -->
+    <section class="module" id="module-risk-radar">
+      <div class="module-header">
+        <div>
+          <h1>Grant Portfolio Risk Radar</h1>
+          <p class="module-subtitle">Monitor grant portfolios for risk signals — burn rates, sub-grant patterns, procurement concentration, and compliance gaps.</p>
+        </div>
+        <button class="btn btn-primary" id="add-grant-btn">+ Add Grant</button>
+      </div>
+      <div class="module-body">
+        <div class="risk-summary-cards" id="risk-summary">
+          <div class="stat-card"><div class="stat-label">Total Grants</div><div class="stat-value" id="stat-total-grants">0</div></div>
+          <div class="stat-card stat-high"><div class="stat-label">High Risk</div><div class="stat-value" id="stat-high-risk">0</div></div>
+          <div class="stat-card stat-medium"><div class="stat-label">Medium Risk</div><div class="stat-value" id="stat-medium-risk">0</div></div>
+          <div class="stat-card stat-low"><div class="stat-label">Low Risk</div><div class="stat-value" id="stat-low-risk">0</div></div>
+          <div class="stat-card stat-portfolio"><div class="stat-label">Total Portfolio</div><div class="stat-value" id="stat-total-budget">$0</div></div>
+        </div>
+        <div class="panel">
+          <div class="table-container"><table class="data-table" id="grants-table">
+            <thead><tr>
+              <th>Grant ID</th><th>Programme</th><th>Donor</th><th>Budget</th><th>Spent</th><th>Burn %</th><th>End Date</th><th>Sub-grants</th><th>Vendor</th><th>Late Spend</th><th>Doc Gaps</th><th>Ext. Audit</th><th>Risk</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="grants-tbody"><tr class="empty-row"><td colspan="14"><div class="empty-state"><p>No grants added yet.</p></div></td></tr></tbody>
+          </table></div>
+        </div>
+        <div class="panel" style="margin-top:1rem;">
+          <div class="panel-header"><h3>AI Risk Analysis</h3><button class="btn btn-sm btn-primary" id="analyze-grants-btn">Analyze Portfolio</button></div>
+          <div class="ai-output" id="grant-ai-output"><p class="muted">Click "Analyze Portfolio" for AI risk insights.</p></div>
+          <div class="ai-reviewed-box" id="grant-ai-reviewed" style="display:none;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== MODULE 3: Fraud Detection (Change 8: CSV) ===================== -->
+    <section class="module" id="module-fraud">
+      <div class="module-header">
+        <div>
+          <h1>Fraud Signal Detection</h1>
+          <p class="module-subtitle">Analyze procurement narratives, vendor data, and payment records for anomaly patterns using NLP.</p>
+        </div>
+      </div>
+      <div class="module-body">
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-header"><h3>Input Data for Analysis</h3></div>
+            <div class="form-group">
+              <label>Analysis Type</label>
+              <select id="fraud-type">
+                <option value="procurement">Procurement Narrative Review</option>
+                <option value="vendor">Vendor Pattern Analysis</option>
+                <option value="loa">LOA Compliance Check</option>
+                <option value="csv">CSV Transaction Data</option>
+                <option value="partner">Partner Payment Review</option>
+              </select>
+            </div>
+            <!-- CSV Upload (Change 8) -->
+            <div id="fraud-csv-section" style="display:none;">
+              <div class="form-group">
+                <label>Upload Transaction Data (CSV)</label>
+                <div class="file-drop" id="fraud-csv-drop">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <p>Drop CSV file here or click to upload</p>
+                  <p style="font-size:0.72rem;color:var(--text-muted);">Columns: date, vendor_name, amount, description, approver, payment_method, country</p>
+                  <input type="file" id="fraud-csv-input" accept=".csv" hidden />
+                </div>
+              </div>
+              <div id="fraud-csv-preview" style="display:none;"></div>
+            </div>
+            <!-- Text input -->
+            <div id="fraud-text-section">
+              <div class="form-group">
+                <label>Paste data or describe the transaction(s)</label>
+                <textarea id="fraud-input" rows="10" placeholder="Paste procurement narratives, vendor justification text, LOA documentation, payment records..."></textarea>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-full" id="fraud-analyze-btn">Run Fraud Signal Analysis</button>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h3>Detection Results</h3></div>
+            <div class="ai-output" id="fraud-results">
+              <p class="muted">Submit data to run NLP-based anomaly detection.</p>
+            </div>
+            <div class="ai-reviewed-box" id="fraud-ai-reviewed" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== MODULE 4: Remote Audit (Change 7: no Interview Prep tab) ===================== -->
+    <section class="module" id="module-remote">
+      <div class="module-header">
+        <div>
+          <h1>Remote Audit Assistant</h1>
+          <p class="module-subtitle">AI-enhanced tools for remote fieldwork — document consistency analysis and real-time flag comparison.</p>
+        </div>
+      </div>
+      <div class="module-body">
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="doc-analysis">Document Analysis</button>
+          <button class="tab-btn" data-tab="realtime-flags">Real-time Flags</button>
+        </div>
+        <div class="tab-content active" id="tab-doc-analysis">
+          <div class="panel">
+            <div class="panel-header"><h3>Document Consistency Analysis</h3></div>
+            <p class="desc">Upload evidence — invoices, contracts, travel claims, payroll records — for automated consistency checks.</p>
+            <div class="form-group">
+              <label>Paste or describe the documents to analyze</label>
+              <textarea id="remote-doc-input" rows="8" placeholder="Paste invoice details, contract terms, travel claim data, or payroll records..."></textarea>
+            </div>
+            <button class="btn btn-primary" id="remote-doc-analyze">Analyze Documents</button>
+            <div class="ai-output" id="remote-doc-output" style="margin-top:1rem;"><p class="muted">Results will appear here.</p></div>
+            <div class="ai-reviewed-box" id="remote-doc-reviewed" style="display:none;"></div>
+          </div>
+        </div>
+        <div class="tab-content" id="tab-realtime-flags">
+          <div class="panel">
+            <div class="panel-header"><h3>Real-time Flag Comparison</h3></div>
+            <p class="desc">Compare interviewee statements against documentary evidence to flag inconsistencies.</p>
+            <div class="two-col">
+              <div class="form-group"><label>Documentary Evidence</label><textarea id="remote-evidence" rows="8" placeholder="Key facts from documents..."></textarea></div>
+              <div class="form-group"><label>Interviewee Statements</label><textarea id="remote-statements" rows="8" placeholder="What the interviewee stated..."></textarea></div>
+            </div>
+            <button class="btn btn-primary" id="remote-compare-btn">Compare & Flag Inconsistencies</button>
+            <div class="ai-output" id="remote-compare-output" style="margin-top:1rem;"><p class="muted">Inconsistencies will be highlighted here.</p></div>
+            <div class="ai-reviewed-box" id="remote-compare-reviewed" style="display:none;"></div>
+          </div>
+        </div>
+        <!-- Change 7: Link to Interview Prep module -->
+        <div class="panel" style="margin-top:1rem;text-align:center;padding:0.8rem;">
+          <p style="font-size:0.85rem;color:var(--text-secondary);">For interview preparation, use the <a href="#" id="link-to-interview" style="color:var(--green);font-weight:600;">Interview Prep &amp; Triangulation module →</a></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== MODULE 5: Predictive Risk Scoring ===================== -->
+    <section class="module" id="module-predictive">
+      <div class="module-header">
+        <div>
+          <h1>Predictive Risk Scoring</h1>
+          <p class="module-subtitle">Maintain a live risk view of each entity in the audit universe with rolling scores updated as signals change.</p>
+        </div>
+        <button class="btn btn-primary" id="add-entity-btn">+ Add Entity</button>
+      </div>
+      <div class="module-body">
+        <div class="panel">
+          <div class="table-container"><table class="data-table" id="entity-table">
+            <thead><tr>
+              <th>Entity</th><th>Region</th><th>Type</th><th>Last Audit</th><th>Open Recs</th><th>Staff</th><th>Turnover</th><th>Budget Vol.</th><th>Security</th><th>Complaints</th><th>Donor</th><th>Reg. Risk</th><th>Burn</th><th>Risk</th><th>Trend</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="entity-tbody"><tr class="empty-row"><td colspan="16"><div class="empty-state"><p>Add entities from your audit universe.</p></div></td></tr></tbody>
+          </table></div>
+        </div>
+        <div class="panel" style="margin-top:1rem;">
+          <div class="panel-header"><h3>AI Risk Commentary</h3><button class="btn btn-sm btn-primary" id="analyze-entities-btn">Generate Risk Analysis</button></div>
+          <div class="ai-output" id="entity-ai-output"><p class="muted">Add entities and click "Generate Risk Analysis".</p></div>
+          <div class="ai-reviewed-box" id="entity-ai-reviewed" style="display:none;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== MODULE 6: Interview Prep & Triangulation ===================== -->
+    <section class="module" id="module-interview">
+      <div class="module-header">
+        <div>
+          <h1>Interview Prep & Triangulation</h1>
+          <p class="module-subtitle">Generate structured interview briefs from source documents and triangulate interview findings against evidence.</p>
+        </div>
+      </div>
+      <div class="module-body">
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="pre-fieldwork">Pre-Fieldwork Briefing</button>
+          <button class="tab-btn" data-tab="triangulation">Post-Interview Triangulation</button>
+        </div>
+        <div class="tab-content active" id="tab-pre-fieldwork">
+          <div class="panel">
+            <div class="panel-header"><h3>Source Documents & Context</h3></div>
+            <div class="form-group"><label>Audit Engagement</label><input type="text" id="interview-engagement" placeholder="e.g., Cameroon Country Office Audit 2025" /></div>
+            <div class="form-group"><label>Source material</label><textarea id="interview-source" rows="10" placeholder="Paste source material here..."></textarea></div>
+            <button class="btn btn-primary" id="interview-gen-btn">Generate Interview Brief</button>
+            <div class="ai-output" id="interview-brief-output" style="margin-top:1rem;"><p class="muted">The structured interview brief will appear here.</p></div>
+            <div class="ai-reviewed-box" id="interview-ai-reviewed" style="display:none;"></div>
+          </div>
+        </div>
+        <div class="tab-content" id="tab-triangulation">
+          <div class="panel">
+            <div class="panel-header"><h3>Findings Triangulation</h3></div>
+            <div class="form-group"><label>Documentary Findings & Evidence</label><textarea id="triangulation-docs" rows="6" placeholder="Paste key documentary findings..."></textarea></div>
+            <div class="form-group"><label>Interview Notes</label><textarea id="triangulation-interviews" rows="6" placeholder="Paste interview notes..."></textarea></div>
+            <div class="form-group"><label>Prior Management Commitments (optional)</label><textarea id="triangulation-commitments" rows="4" placeholder="Paste agreed management action plans..."></textarea></div>
+            <button class="btn btn-primary" id="triangulation-btn">Run Triangulation Analysis</button>
+            <div class="ai-output" id="triangulation-output" style="margin-top:1rem;"><p class="muted">Triangulation results will highlight discrepancies.</p></div>
+            <div class="ai-reviewed-box" id="triangulation-ai-reviewed" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== MODULE 7: Report Drafting & QC (Change 5: IIA structure) ===================== -->
+    <section class="module" id="module-report">
+      <div class="module-header">
+        <div>
+          <h1>Report Drafting & Quality Control</h1>
+          <p class="module-subtitle">AI-assisted audit report drafting with IIA-compliant finding structure, quality checks, and recommendation tracking.</p>
+        </div>
+      </div>
+      <div class="module-body">
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="draft">Draft Findings</button>
+          <button class="tab-btn" data-tab="qc">Quality Check</button>
+          <button class="tab-btn" data-tab="tracker">Recommendation Tracker</button>
+        </div>
+        <!-- Change 5: IIA 5-field structure -->
+        <div class="tab-content active" id="tab-draft">
+          <div class="two-col">
+            <div class="panel">
+              <div class="panel-header"><h3>IIA Finding Structure</h3></div>
+              <div class="form-group"><label>Finding Title</label><input type="text" id="draft-title" placeholder="e.g., Inadequate Partner Due Diligence" /></div>
+              <div class="form-group">
+                <label>Risk Rating</label>
+                <select id="draft-risk">
+                  <option value="Critical">Critical</option>
+                  <option value="Significant">Significant</option>
+                  <option value="Moderate" selected>Moderate</option>
+                  <option value="Low">Low</option>
+                </select>
+              </div>
+              <div class="form-group"><label>1. Criteria <span class="field-hint">(What should be happening)</span></label><textarea id="draft-criteria" rows="3" placeholder="The applicable policy, standard, or benchmark..."></textarea></div>
+              <div class="form-group"><label>2. Condition <span class="field-hint">(What was found)</span></label><textarea id="draft-condition" rows="3" placeholder="The factual findings from audit testing..."></textarea></div>
+              <div class="form-group"><label>3. Cause <span class="field-hint">(Why it happened)</span></label><textarea id="draft-cause" rows="3" placeholder="The root cause or contributing factors..."></textarea></div>
+              <div class="form-group"><label>4. Consequence <span class="field-hint">(Risk / Impact)</span></label><textarea id="draft-consequence" rows="3" placeholder="The potential or actual impact..."></textarea></div>
+              <div class="form-group"><label>5. Initial Recommendation <span class="field-hint">(Auditor's draft)</span></label><textarea id="draft-recommendation" rows="3" placeholder="Your proposed recommendation..."></textarea></div>
+              <button class="btn btn-primary btn-full" id="draft-gen-btn">Generate Draft Finding</button>
+            </div>
+            <div class="panel">
+              <div class="panel-header"><h3>AI-Generated Draft</h3></div>
+              <div class="ai-output draft-output" id="draft-output"><p class="muted">The AI will generate a structured finding in the IAU's house style (Criteria / Condition / Cause / Consequence / Recommendation).</p></div>
+              <div class="ai-reviewed-box" id="draft-ai-reviewed" style="display:none;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-content" id="tab-qc">
+          <div class="panel">
+            <div class="panel-header"><h3>Report Quality Check</h3></div>
+            <div class="form-group"><label>Draft Report Content</label><textarea id="qc-input" rows="12" placeholder="Paste your draft finding or report section here..."></textarea></div>
+            <button class="btn btn-primary" id="qc-check-btn">Run Quality Check</button>
+            <div class="ai-output" id="qc-output" style="margin-top:1rem;"><p class="muted">Quality check results will appear here.</p></div>
+            <div class="ai-reviewed-box" id="qc-ai-reviewed" style="display:none;"></div>
+          </div>
+        </div>
+        <div class="tab-content" id="tab-tracker">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Recommendation Tracker</h3>
+              <button class="btn btn-sm btn-primary" id="add-rec-btn">Add Recommendation</button>
+            </div>
+            <div class="table-container"><table class="data-table" id="rec-table">
+              <thead><tr><th>Report</th><th>Finding</th><th>Recommendation</th><th>Owner</th><th>Due Date</th><th>Status</th><th>Days</th><th>Actions</th></tr></thead>
+              <tbody id="rec-tbody"><tr class="empty-row"><td colspan="8"><div class="empty-state"><p>No recommendations tracked yet.</p></div></td></tr></tbody>
+            </table></div>
+            <div style="margin-top:1rem;"><button class="btn btn-primary" id="rec-ai-btn">AI Follow-up Analysis</button></div>
+            <div class="ai-output" id="rec-ai-output" style="margin-top:1rem;"><p class="muted">Add recommendations and run AI follow-up analysis.</p></div>
+            <div class="ai-reviewed-box" id="rec-ai-reviewed" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== MODULE 8: AI Log (Change 4) ===================== -->
+    <section class="module" id="module-ailog">
+      <div class="module-header">
+        <div>
+          <h1>AI Output Audit Log</h1>
+          <p class="module-subtitle">Complete record of all AI-generated outputs with review status. Every AI response is logged here for accountability.</p>
+        </div>
+      </div>
+      <div class="module-body">
+        <div class="panel">
+          <div class="table-container"><table class="data-table" id="ailog-table">
+            <thead><tr><th>Timestamp</th><th>Module</th><th>Inputs Summary</th><th>Output Preview</th><th>Model</th><th>Reviewed</th></tr></thead>
+            <tbody id="ailog-tbody"><tr class="empty-row"><td colspan="6"><div class="empty-state"><p>No AI outputs logged yet.</p></div></td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================== MODALS ===================== -->
+
+  <!-- Welcome Modal (Change 9) -->
+  <div class="modal-overlay" id="welcome-modal">
+    <div class="modal" style="max-width:500px;">
+      <div class="modal-header">
+        <h2>Welcome to AuditAI</h2>
+        <button class="modal-close" id="welcome-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="desc" style="margin-bottom:1.2rem;">CIFOR-ICRAF Internal Audit Unit — AI-powered audit intelligence platform.</p>
+        <div class="welcome-steps">
+          <div class="welcome-step"><span class="step-num">1</span><div><strong>Institutional Memory</strong><p>Query past audits before your next engagement. Upload reports and ask questions.</p></div></div>
+          <div class="welcome-step"><span class="step-num">2</span><div><strong>Risk Scoring & Grant Radar</strong><p>Add your audit universe entities and grant portfolio to track risk signals.</p></div></div>
+          <div class="welcome-step"><span class="step-num">3</span><div><strong>Fieldwork & Reporting</strong><p>Use Interview Prep and Report Drafting during fieldwork and reporting phases.</p></div></div>
+        </div>
+        <button class="btn btn-primary btn-full" id="welcome-go-btn" style="margin-top:1.2rem;">Got it, take me to Institutional Memory →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settings-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>API Settings</h2>
+        <button class="modal-close" id="settings-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="desc">Connect your LLM provider. Your key is stored only in your browser.</p>
+        <div class="form-group"><label>API Provider</label><select id="api-provider"><option value="openai">OpenAI</option><option value="azure">Azure OpenAI</option><option value="custom">Custom Endpoint</option></select></div>
+        <div class="form-group"><label>API Key</label><input type="password" id="api-key" placeholder="sk-..." /></div>
+        <div class="form-group" id="api-endpoint-group" style="display:none;"><label>API Endpoint URL</label><input type="text" id="api-endpoint" placeholder="https://your-endpoint.openai.azure.com/" /></div>
+        <div class="form-group"><label>Model</label><input type="text" id="api-model" placeholder="gpt-4o" value="gpt-4o" /></div>
+        <button class="btn btn-primary btn-full" id="save-settings-btn">Save Settings</button>
+        <div class="settings-status" id="settings-status"></div>
+        <hr style="margin:1rem 0;border:none;border-top:1px solid var(--border);">
+        <button class="btn btn-full" id="clear-demo-btn" style="color:var(--red);">Clear All Demo Data</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grant Modal -->
+  <div class="modal-overlay" id="grant-modal">
+    <div class="modal">
+      <div class="modal-header"><h2 id="grant-modal-title">Add Grant</h2><button class="modal-close" id="grant-close">&times;</button></div>
+      <div class="modal-body">
+        <div class="form-section">Grant Identification</div>
+        <div class="form-row">
+          <div class="form-group"><label>Grant ID</label><input type="text" id="grant-id" placeholder="e.g., FAOZ-1621" list="grant-id-list" /><datalist id="grant-id-list"><option value="FAOZ-">FAO</option><option value="BMZZ-">BMZ</option><option value="EURC-">EU</option><option value="NORD-">Norad</option><option value="BMUZ-">BMZ Stream 2</option><option value="CGIZ-">GIZ</option><option value="USAI-">USAID</option><option value="GOVI-">Government</option></datalist></div>
+          <div class="form-group"><label>Donor</label><input type="text" id="grant-donor" placeholder="e.g., BMZ, EU, NORAD" /></div>
+        </div>
+        <div class="form-group"><label>Programme Name</label><input type="text" id="grant-name" placeholder="e.g., SWM Programme" /></div>
+        <div class="form-section">Financial Details</div>
+        <div class="form-row">
+          <div class="form-group"><label>Total Budget (USD)</label><input type="number" id="grant-budget" placeholder="e.g., 20000000" /></div>
+          <div class="form-group"><label>Total Expenditure (USD)</label><input type="number" id="grant-expenditure" placeholder="e.g., 17000000" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Burn Rate (%)</label><input type="number" id="grant-burn" placeholder="0-100" min="0" max="100" /></div>
+          <div class="form-group"><label>Number of Sub-grants</label><input type="number" id="grant-subgrants" placeholder="0" min="0" /></div>
+        </div>
+        <div class="form-section">Timeline</div>
+        <div class="form-row">
+          <div class="form-group"><label>Start Date</label><input type="date" id="grant-start" /></div>
+          <div class="form-group"><label>End Date</label><input type="date" id="grant-end" /></div>
+        </div>
+        <div class="form-group"><label>Countries Covered</label><input type="text" id="grant-countries" placeholder="e.g., Cameroon, DRC, Kenya" /></div>
+        <div class="form-section">Risk Indicators</div>
+        <div class="form-row">
+          <div class="form-group"><label>Single Vendor Concentration</label><select id="grant-vendor"><option value="no">No</option><option value="yes">Yes</option></select></div>
+          <div class="form-group"><label>Late-year Expenditure Spike</label><select id="grant-late"><option value="no">No</option><option value="yes">Yes</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Documentation Gaps</label><select id="grant-docs"><option value="no">No</option><option value="yes">Yes</option></select></div>
+          <div class="form-group"><label>External Audit Required</label><select id="grant-extaudit"><option value="no">No</option><option value="yes">Yes</option></select></div>
+        </div>
+        <div class="form-group"><label>Notes</label><textarea id="grant-notes" rows="2" placeholder="Additional notes..."></textarea></div>
+        <button class="btn btn-primary btn-full" id="save-grant-btn">Save Grant</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Entity Modal -->
+  <div class="modal-overlay" id="entity-modal">
+    <div class="modal">
+      <div class="modal-header"><h2 id="entity-modal-title">Add Entity</h2><button class="modal-close" id="entity-close">&times;</button></div>
+      <div class="modal-body">
+        <div class="form-section">Entity Details</div>
+        <div class="form-group"><label>Entity Name</label><input type="text" id="entity-name" placeholder="e.g., Cameroon Country Office" /></div>
+        <div class="form-row">
+          <div class="form-group"><label>Region</label><select id="entity-region"><option value="Africa">Africa</option><option value="Asia">Asia</option><option value="Americas">Americas</option><option value="Europe">Europe</option><option value="Pacific">Pacific</option><option value="HQ">HQ</option></select></div>
+          <div class="form-group"><label>Entity Type</label><select id="entity-type"><option value="Country Office">Country Office</option><option value="Regional Hub">Regional Hub</option><option value="HQ Unit">HQ Unit</option><option value="Programme">Programme</option><option value="Project">Project</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Staff Count</label><input type="number" id="entity-staff" placeholder="e.g., 58" min="0" /></div>
+          <div class="form-group"><label>Last Audit Date</label><input type="date" id="entity-last-audit" /></div>
+        </div>
+        <div class="form-section">Internal Risk Signals</div>
+        <div class="form-row">
+          <div class="form-group"><label>Open Recommendations</label><input type="number" id="entity-open-recs" placeholder="0" min="0" /></div>
+          <div class="form-group"><label>Staff Turnover (% / 12 months)</label><input type="number" id="entity-turnover" placeholder="0-100" min="0" max="100" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Budget Volatility (1-10)</label><input type="number" id="entity-budget-vol" placeholder="1-10" min="1" max="10" /></div>
+          <div class="form-group"><label>Complaints (last 24 months)</label><input type="number" id="entity-complaints" placeholder="0" min="0" /></div>
+        </div>
+        <div class="form-section">External Risk Signals</div>
+        <div class="form-row">
+          <div class="form-group"><label>Security Index (1-5)</label><input type="number" id="entity-security" placeholder="1-5" min="1" max="5" /></div>
+          <div class="form-group"><label>Donor Funding Changes</label><select id="entity-donor-change"><option value="stable">Stable</option><option value="increasing">Increasing</option><option value="decreasing">Decreasing — risk</option><option value="volatile">Volatile — high risk</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Regulatory Risk</label><select id="entity-reg-risk"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High (tax disputes, HCA issues)</option></select></div>
+          <div class="form-group"><label>Avg Grant Burn Rate (%)</label><input type="number" id="entity-grant-burn" placeholder="0-100" min="0" max="100" /></div>
+        </div>
+        <div class="form-group"><label>Notes</label><textarea id="entity-notes" rows="2" placeholder="Additional context..."></textarea></div>
+        <button class="btn btn-primary btn-full" id="save-entity-btn">Save Entity</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommendation Modal -->
+  <div class="modal-overlay" id="rec-modal">
+    <div class="modal">
+      <div class="modal-header"><h2>Add Recommendation</h2><button class="modal-close" id="rec-close">&times;</button></div>
+      <div class="modal-body">
+        <div class="form-group"><label>Report Name</label><input type="text" id="rec-report" placeholder="e.g., Cameroon 2025" /></div>
+        <div class="form-group"><label>Finding</label><input type="text" id="rec-finding" placeholder="e.g., BCM Framework" /></div>
+        <div class="form-group"><label>Recommendation</label><textarea id="rec-recommendation" rows="3" placeholder="Specific, actionable recommendation..."></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label>Owner</label><input type="text" id="rec-owner" placeholder="e.g., CFOO" /></div>
+          <div class="form-group"><label>Due Date</label><input type="date" id="rec-due" /></div>
+        </div>
+        <div class="form-group"><label>Status</label><select id="rec-status"><option value="open">Open</option><option value="in-progress">In Progress</option><option value="closed">Closed</option><option value="overdue">Overdue</option></select></div>
+        <button class="btn btn-primary btn-full" id="save-rec-btn">Save Recommendation</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
